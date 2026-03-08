@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Happy Women's Day 💐</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --rose:    #c0305a;
+      --blush:   #f2a7bf;
+      --gold:    #d4a041;
+      --cream:   #fdf5ee;
+      --deep:    #1a0510;
+      --petal1:  #e8637a;
+      --petal2:  #f0a8ba;
+      --petal3:  #d4506a;
+      --leaf:    #6b8f5e;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--cream);
+      font-family: 'Cormorant Garamond', serif;
+    }
+
+    /* ── CANVAS BACKGROUND ── */
+    canvas#petals {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── GRAIN OVERLAY ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 200px;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.5;
+    }
+
+    /* ── RADIAL GLOW ── */
+    .glow {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 60% at 50% 50%, rgba(242,167,191,0.35) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 20% 80%, rgba(212,80,106,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 80% 20%, rgba(212,160,65,0.1) 0%, transparent 60%);
+      z-index: 0;
+    }
+
+    /* ── SCENE ── */
+    .scene {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+
+    /* ── DATE RIBBON ── */
+    .date-ribbon {
+      font-size: clamp(0.65rem, 1.5vw, 0.8rem);
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0;
+      animation: fadeUp 1s 0.3s ease forwards;
+    }
+
+    /* ── HEADLINE ── */
+    .headline {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3.5rem, 10vw, 8rem);
+      font-weight: 700;
+      line-height: 0.88;
+      color: var(--rose);
+      text-align: center;
+      position: relative;
+      opacity: 0;
+      animation: fadeUp 1s 0.55s ease forwards;
+    }
+
+    .headline em {
+      font-style: italic;
+      color: var(--petal3);
+      display: block;
+    }
+
+    /* gold underscore */
+    .headline::after {
+      content: '';
+      display: block;
+      width: 3.5rem;
+      height: 3px;
+      background: var(--gold);
+      margin: 1rem auto 0;
+      transform-origin: left;
+      animation: lineGrow 1.2s 1.3s cubic-bezier(.77,0,.18,1) forwards;
+      transform: scaleX(0);
+    }
+
+    /* ── SUBTITLE ── */
+    .subtitle {
+      font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+      font-style: italic;
+      color: var(--petal3);
+      letter-spacing: 0.06em;
+      margin-top: 1.2rem;
+      opacity: 0;
+      animation: fadeUp 1s 0.85s ease forwards;
+    }
+
+    /* ── FLORAL DIVIDER ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-top: 2rem;
+      opacity: 0;
+      animation: fadeUp 1s 1s ease forwards;
+    }
+    .divider span { display: block; height: 1px; width: 60px; background: linear-gradient(90deg, transparent, var(--blush), transparent); }
+    .divider svg { width: 22px; height: 22px; fill: var(--rose); }
+
+    /* ── HEART BUTTON ── */
+    .heart-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: transform 0.15s;
+    }
+    .heart-btn svg { width: 48px; height: 48px; filter: drop-shadow(0 2px 8px rgba(192,48,90,0.45)); transition: transform 0.3s cubic-bezier(.34,1.56,.64,1); }
+    .heart-btn:hover svg { transform: scale(1.3); }
+    .heart-btn.pop svg { animation: heartPop 0.5s cubic-bezier(.34,1.56,.64,1); }
+
+    .mini-heart {
+      position: fixed;
+      pointer-events: none;
+      font-size: 1.1rem;
+      z-index: 200;
+      animation: floatHeart 1.4s ease-out forwards;
+    }
+
+    /* ── MUSIC TOGGLE ── */
+    .music-btn {
+      position: fixed;
+      bottom: 1.6rem;
+      right: 1.8rem;
+      z-index: 50;
+      background: rgba(253,245,238,0.85);
+      border: 1.5px solid var(--rose);
+      color: var(--rose);
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 4px 18px rgba(192,48,90,0.2);
+      transition: background 0.3s, color 0.3s, transform 0.2s;
+      opacity: 0;
+      animation: fadeUp 1s 1.5s ease forwards;
+    }
+    .music-btn:hover { background: var(--rose); color: var(--cream); transform: scale(1.08); }
+    .music-btn svg { width: 20px; height: 20px; }
+    .music-btn .note-icon { display: block; }
+    .music-btn .mute-icon { display: none; }
+    .music-btn.muted .note-icon { display: none; }
+    .music-btn.muted .mute-icon { display: block; }
+
+    /* ── BUTTON ── */
+    .open-btn {
+      margin-top: 2.6rem;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 1rem 2.8rem;
+      background: transparent;
+      border: 1.5px solid var(--rose);
+      color: var(--rose);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeUp 1s 1.2s ease forwards;
+      transition: color 0.4s;
+    }
+
+    .open-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--rose);
+      transform: translateX(-101%);
+      transition: transform 0.45s cubic-bezier(.77,0,.18,1);
+      z-index: 0;
+    }
+    .open-btn:hover::before { transform: translateX(0); }
+    .open-btn:hover { color: var(--cream); }
+    .open-btn span { position: relative; z-index: 1; }
+    .open-btn svg { position: relative; z-index: 1; width: 18px; height: 18px; transition: transform 0.3s; }
+    .open-btn:hover svg { transform: rotate(15deg) scale(1.2); }
+
+    /* pulse ring */
+    .open-btn::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border: 1px solid rgba(192,48,90,0.4);
+      animation: pulseRing 2.4s 2s ease-out infinite;
+    }
+
+    /* ── OVERLAY MESSAGE ── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    .overlay.active {
+      pointer-events: all;
+      opacity: 1;
+    }
+
+    .overlay-bg {
+      position: absolute;
+      inset: 0;
+      background: rgba(26,5,16,0.72);
+      backdrop-filter: blur(6px);
+    }
+
+    .message-card {
+      position: relative;
+      z-index: 1;
+      background: var(--cream);
+      max-width: 480px;
+      width: 90%;
+      padding: 3.5rem 3rem 3rem;
+      text-align: center;
+      border-top: 4px solid var(--gold);
+      transform: translateY(30px) scale(0.94);
+      transition: transform 0.5s cubic-bezier(.34,1.56,.64,1), opacity 0.4s;
+      opacity: 0;
+    }
+    .overlay.active .message-card {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      transition-delay: 0.1s;
+    }
+
+    .card-icon {
+      font-size: 2.8rem;
+      margin-bottom: 1rem;
+      animation: heartbeat 1.4s ease infinite;
+    }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.9rem;
+      font-style: italic;
+      color: var(--rose);
+      margin-bottom: 1.2rem;
+      line-height: 1.2;
+    }
+
+    .card-body {
+      font-size: 1.05rem;
+      line-height: 1.85;
+      color: #5a2535;
+      font-weight: 300;
+    }
+
+    .card-sig {
+      margin-top: 1.6rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .close-btn {
+      margin-top: 2rem;
+      background: none;
+      border: 1px solid var(--rose);
+      color: var(--rose);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.15em;
+      padding: 0.55rem 1.8rem;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+    }
+    .close-btn:hover { background: var(--rose); color: var(--cream); }
+
+    /* ── DECORATIVE CORNER VINES ── */
+    .vine {
+      position: fixed;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0.55;
+    }
+    .vine.tl { top: -20px; left: -20px; transform: rotate(0deg); }
+    .vine.br { bottom: -20px; right: -20px; transform: rotate(180deg); }
+    .vine.tr { top: -20px; right: -20px; transform: scaleX(-1); }
+    .vine.bl { bottom: -20px; left: -20px; transform: rotate(180deg) scaleX(-1); }
+
+    /* ── KEYFRAMES ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes lineGrow {
+      to { transform: scaleX(1); }
+    }
+    @keyframes pulseRing {
+      0%   { opacity: 0.8; transform: scale(1); }
+      100% { opacity: 0;   transform: scale(1.25); }
+    }
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      14%       { transform: scale(1.15); }
+      28%       { transform: scale(1); }
+      42%       { transform: scale(1.1); }
+      70%       { transform: scale(1); }
+    }
+    @keyframes heartPop {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.55); }
+      70%  { transform: scale(0.9); }
+      100% { transform: scale(1); }
+    }
+    @keyframes floatHeart {
+      0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+      60%  { opacity: 0.8; }
+      100% { opacity: 0; transform: translate(var(--tx, 0px), -80px) scale(0.4); }
+    }
+    @keyframes petalSpin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="petals"></canvas>
+<div class="glow"></div>
+
+<!-- Hidden YouTube music player -->
+<iframe id="ytPlayer"
+  src="https://www.youtube.com/embed/lFRCELFBpB4?autoplay=1&loop=1&playlist=lFRCELFBpB4&controls=0&mute=0"
+  allow="autoplay"
+  style="position:fixed;width:0;height:0;border:none;opacity:0;pointer-events:none;"
+></iframe>
+
+<!-- Music toggle -->
+<button class="music-btn" id="musicBtn" aria-label="Toggle music" title="Toggle music">
+  <svg class="note-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+  <svg class="mute-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M4.27 3L3 4.27l6.01 6.01L9 10.55c-.59-.34-1.27-.55-2-.55C4.79 10 3 11.79 3 14s1.79 4 4 4 4-1.79 4-4V8.73L20.73 21 22 19.73 4.27 3zM18 3v.73l-2 2V7h-4v3.27l4 4V13h2V7h2V3h-4z"/></svg>
+</button>
+
+<!-- Corner vines -->
+<svg class="vine tl" width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M10 150 Q 60 80 150 10" stroke="#c0305a" stroke-width="1" fill="none" opacity="0.6"/>
+  <path d="M30 150 Q 80 100 150 30" stroke="#d4a041" stroke-width="0.6" fill="none" opacity="0.4"/>
+  <circle cx="20" cy="140" r="5" fill="#c0305a" opacity="0.7"/>
+  <circle cx="50" cy="100" r="4" fill="#d4a041" opacity="0.6"/>
+  <circle cx="90" cy="60" r="6" fill="#c0305a" opacity="0.5"/>
+  <circle cx="130" cy="20" r="4" fill="#e8637a" opacity="0.6"/>
+  <!-- petals -->
+  <ellipse cx="50" cy="100" rx="8" ry="4" fill="#f0a8ba" opacity="0.55" transform="rotate(-45 50 100)"/>
+  <ellipse cx="90" cy="60" rx="9" ry="4" fill="#e8637a" opacity="0.5" transform="rotate(-45 90 60)"/>
+</svg>
+<svg class="vine br" width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M10 150 Q 60 80 150 10" stroke="#c0305a" stroke-width="1" fill="none" opacity="0.6"/>
+  <circle cx="20" cy="140" r="5" fill="#c0305a" opacity="0.7"/>
+  <circle cx="50" cy="100" r="4" fill="#d4a041" opacity="0.6"/>
+  <circle cx="90" cy="60" r="6" fill="#c0305a" opacity="0.5"/>
+  <ellipse cx="50" cy="100" rx="8" ry="4" fill="#f0a8ba" opacity="0.55" transform="rotate(-45 50 100)"/>
+</svg>
+<svg class="vine tr" width="120" height="120" viewBox="0 0 120 120" fill="none">
+  <path d="M10 110 Q 50 60 110 10" stroke="#c0305a" stroke-width="0.8" fill="none" opacity="0.5"/>
+  <circle cx="40" cy="80" r="5" fill="#e8637a" opacity="0.5"/>
+  <ellipse cx="40" cy="80" rx="7" ry="3.5" fill="#f0a8ba" opacity="0.5" transform="rotate(-45 40 80)"/>
+</svg>
+<svg class="vine bl" width="120" height="120" viewBox="0 0 120 120" fill="none">
+  <path d="M10 110 Q 50 60 110 10" stroke="#c0305a" stroke-width="0.8" fill="none" opacity="0.5"/>
+  <circle cx="70" cy="40" r="5" fill="#c0305a" opacity="0.5"/>
+  <ellipse cx="70" cy="40" rx="7" ry="3.5" fill="#f0a8ba" opacity="0.5" transform="rotate(-45 70 40)"/>
+</svg>
+
+<!-- Main Scene -->
+<div class="scene">
+
+  <p class="date-ribbon">Wishing a day as amazing as you are</p>
+
+  <h1 class="headline">
+    Happy<br>
+    <em>Women's Day</em>
+  </h1>
+
+  <p class="subtitle">Celebrating the strength, grace &amp; spirit of every woman.</p>
+
+  <button class="open-btn" id="openBtn" aria-label="Open your message">
+    <span>Open My Message</span>
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4.7-8 5-8-5V6l8 5 8-5v2.7z"/></svg>
+  </button>
+
+  <div class="divider">
+    <span></span>
+    <button class="heart-btn" id="heartBtn" aria-label="Send love">
+      <svg viewBox="0 0 24 24" fill="#c0305a" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/>
+      </svg>
+    </button>
+    <span></span>
+  </div>
+
+</div>
+
+<!-- Message Overlay -->
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="cardTitle">
+  <div class="overlay-bg" id="overlayBg"></div>
+  <div class="message-card">
+    <div class="card-icon">🌸</div>
+    <h2 class="card-title" id="cardTitle">To Every Woman Who Has Ever Doubted Her Light</h2>
+    <p class="card-body">
+      You are not just a chapter in someone else's story —<br>
+      you are the author, the muse, and the whole library.<br><br>
+      Your kindness builds worlds. Your resilience moves mountains.<br>
+      Your laughter is the soundtrack of the best days.<br><br>
+      On this day, and every day after — be celebrated, be cherished,<br>
+      and never, ever shrink yourself for a room that's too small for your brilliance. 💖
+    </p>
+    <p class="card-sig">— With love &amp; admiration, always</p>
+    <button class="close-btn" id="closeBtn">Close ✕</button>
+  </div>
+</div>
+
+<script>
+/* ── FALLING PETALS ── */
+const canvas = document.getElementById('petals');
+const ctx = canvas.getContext('2d');
+let W, H, petals = [];
+
+const COLORS = ['#e8637a','#f0a8ba','#d4506a','#f2a7bf','#c0305a','#d4a041'];
+
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+function randBetween(a,b){ return a + Math.random()*(b-a); }
+
+function makePetal(){
+  return{
+    x: randBetween(0,W),
+    y: randBetween(-80,-10),
+    size: randBetween(6,16),
+    speedY: randBetween(0.6,1.8),
+    speedX: randBetween(-0.5,0.5),
+    rotation: randBetween(0,Math.PI*2),
+    rotSpeed: randBetween(-0.02,0.02),
+    color: COLORS[Math.floor(Math.random()*COLORS.length)],
+    opacity: randBetween(0.4,0.85),
+    wobble: randBetween(0,Math.PI*2),
+    wobbleSpeed: randBetween(0.01,0.03)
+  }
+}
+
+for(let i=0;i<55;i++){
+  const p = makePetal();
+  p.y = randBetween(0,H);
+  petals.push(p);
+}
+
+function drawPetal(p){
+  ctx.save();
+  ctx.translate(p.x,p.y);
+  ctx.rotate(p.rotation);
+  ctx.globalAlpha = p.opacity;
+  ctx.fillStyle = p.color;
+  ctx.beginPath();
+  ctx.ellipse(0,0,p.size,p.size*0.48,0,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function tick(){
+  ctx.clearRect(0,0,W,H);
+
+  for(const p of petals){
+    p.wobble += p.wobbleSpeed;
+    p.x += p.speedX + Math.sin(p.wobble)*0.4;
+    p.y += p.speedY;
+    p.rotation += p.rotSpeed;
+
+    if(p.y > H+30){
+      Object.assign(p,makePetal());
+      p.y = -20;
+    }
+
+    drawPetal(p);
+  }
+
+  requestAnimationFrame(tick);
+}
+tick();
+
+/* ── OVERLAY TOGGLE ── */
+const openBtn  = document.getElementById('openBtn');
+const closeBtn = document.getElementById('closeBtn');
+const overlay  = document.getElementById('overlay');
+const overlayBg = document.getElementById('overlayBg');
+
+openBtn.addEventListener('click',()=>overlay.classList.add('active'));
+closeBtn.addEventListener('click',()=>overlay.classList.remove('active'));
+overlayBg.addEventListener('click',()=>overlay.classList.remove('active'));
+
+document.addEventListener('keydown',e=>{
+  if(e.key==="Escape") overlay.classList.remove('active');
+});
+
+/* ── HEART CLICK BURST + REDIRECT ── */
+const heartBtn = document.getElementById('heartBtn');
+const HEARTS = ['❤️','💕','💖','💗','💓','🌸'];
+
+heartBtn.addEventListener('click',()=>{
+
+  heartBtn.classList.remove('pop');
+  void heartBtn.offsetWidth;
+  heartBtn.classList.add('pop');
+
+  const rect = heartBtn.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+
+  for(let i=0;i<8;i++){
+
+    const el = document.createElement('span');
+    el.className = 'mini-heart';
+    el.textContent = HEARTS[Math.floor(Math.random()*HEARTS.length)];
+
+    const angle = (Math.PI*2/8)*i + (Math.random()-0.5)*0.4;
+    const dist  = 40 + Math.random()*50;
+
+    el.style.left = (cx + Math.cos(angle)*dist*0.3) + 'px';
+    el.style.top  = (cy + Math.sin(angle)*dist*0.3) + 'px';
+    el.style.setProperty('--tx', Math.cos(angle)*dist + 'px');
+
+    el.style.animationDelay = (Math.random()*0.15)+'s';
+    el.style.animationDuration = (1.1 + Math.random()*0.6)+'s';
+    el.style.fontSize = (0.8 + Math.random()*0.7)+'rem';
+
+    document.body.appendChild(el);
+    el.addEventListener('animationend',()=>el.remove());
+  }
+
+  /* redirect to rainbow page */
+  setTimeout(()=>{
+    window.location.href = "womens-day-collage.html";
+  },600);
+
+});
+
+/* ── MUSIC TOGGLE ── */
+const musicBtn = document.getElementById('musicBtn');
+const ytPlayer = document.getElementById('ytPlayer');
+
+let muted = false;
+
+musicBtn.addEventListener('click',()=>{
+
+  muted = !muted;
+  musicBtn.classList.toggle('muted',muted);
+
+  const base =
+  "https://www.youtube.com/embed/lFRCELFBpB4?autoplay=1&loop=1&playlist=lFRCELFBpB4&controls=0&mute=";
+
+  ytPlayer.src = base + (muted ? "1":"0");
+
+});
+</script>
+</body>
+</html>
